@@ -1,0 +1,7 @@
+venv
+*.pyc
+*.out
+*.swp
+*.swo
+instructions.txt
+
