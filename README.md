@@ -4,11 +4,15 @@ Requirements:
 * virtualenv (https://virtualenv.pypa.io/en/latest/installation.html)
 
 Setup:
+```
 > ./bootstrap.sh
+```
 
 Running:
+```
 > source venv/bin/activate # Just once
 > python server.py
+```
 
 Other Info:
 * Backend is sqlite3
