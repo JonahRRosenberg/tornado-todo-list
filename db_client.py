@@ -18,12 +18,16 @@ class DBClient:
         self.conn.row_factory = dict_factory
         self.conn.execute('pragma foreign_keys=ON')
 
-    def get_tasks_by_user_id(self, user_id):
+    def get_tasks_by_user_id(self, user_id, incomplete_only):
         cur = self.conn.execute("SELECT * FROM users WHERE ID = %s" % user_id)
         if cur.fetchone() is None:
             raise RuntimeError("No user found for id: {0}".format(user_id))
 
-        cur = self.conn.execute("SELECT * FROM tasks WHERE user_id = %s" % user_id)
+        get_tasks_query = "SELECT * FROM tasks WHERE user_id = %s"
+        if incomplete_only:
+            get_tasks_query += " AND is_complete = 0"
+
+        cur = self.conn.execute(get_tasks_query % user_id)
         return cur.fetchall()
 
     def create_task(self, user_id, task):

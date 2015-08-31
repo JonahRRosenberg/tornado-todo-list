@@ -24,8 +24,10 @@ class TasksUserHandler(tornado.web.RequestHandler):
         self.db_client = db_client
 
     def get(self, user_id):
+        incomplete_only = self.get_argument("incomplete-only", "false").lower() == "true"
+
         try:
-            tasks = self.db_client.get_tasks_by_user_id(user_id)
+            tasks = self.db_client.get_tasks_by_user_id(user_id, incomplete_only)
         except RuntimeError as ex:
             raise tornado.web.HTTPError(400, reason=str(ex))
         except Exception as ex:
