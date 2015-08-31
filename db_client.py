@@ -19,9 +19,7 @@ class DBClient:
         self.conn.execute('pragma foreign_keys=ON')
 
     def get_tasks_by_user_id(self, user_id, incomplete_only):
-        cur = self.conn.execute("SELECT * FROM users WHERE ID = %s" % user_id)
-        if cur.fetchone() is None:
-            raise RuntimeError("No user found for id: {0}".format(user_id))
+        self.__check_is_valid_user(user_id)
 
         get_tasks_query = "SELECT * FROM tasks WHERE user_id = %s"
         if incomplete_only:
@@ -31,7 +29,7 @@ class DBClient:
         return cur.fetchall()
 
     def create_task(self, user_id, task):
-        #TODO: Check for user first
+        self.__check_is_valid_user(user_id)
 
         self.conn.execute(
             """
@@ -42,7 +40,7 @@ class DBClient:
         self.conn.commit()
 
     def update_task(self, task_id, task):
-        #TODO: Check for task first
+        self.__check_is_valid_task(task_id)
 
         attributes = [
             ("description", str),
@@ -71,6 +69,16 @@ class DBClient:
 
         self.conn.commit()
 
+    def __check_is_valid_user(self, user_id):
+        cur = self.conn.execute("SELECT COUNT(*) FROM users WHERE ID = %s" % user_id)
+        if int(cur.fetchone()["COUNT(*)"]) <= 0:
+            raise RuntimeError("No user found for id: {0}".format(user_id))
+
+    def __check_is_valid_task(self, task_id):
+        cur = self.conn.execute("SELECT COUNT(*) FROM tasks WHERE ID = %s" % task_id)
+        if int(cur.fetchone()["COUNT(*)"]) <= 0:
+            raise RuntimeError("No task found for id: {0}".format(task_id))
+
     def __get_sqlite_input(self, attr, attr_type):
         if attr_type == str:
             return "'{0}'".format(attr)
@@ -80,5 +88,4 @@ class DBClient:
             return "{0}".format(int(attr))
         else:
             raise TypeError("Unknown attr_type: " + str(attr_type))
-
 
