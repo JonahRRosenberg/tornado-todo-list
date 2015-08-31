@@ -25,3 +25,12 @@ class DBClient:
         cur = self.conn.execute("SELECT * FROM tasks WHERE user_id = %s" % user_id)
         return cur.fetchall()
 
+    def create_task(self, user_id, task):
+        self.conn.execute(
+            """
+            INSERT INTO tasks(description, due_date, user_id, is_complete)
+            VALUES ('{0}', DATETIME('{1}'), {2}, {3})
+            """.format(task["description"], task["due_date"], user_id, 0))
+
+        self.conn.commit()
+

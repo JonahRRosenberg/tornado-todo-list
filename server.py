@@ -1,4 +1,6 @@
 
+import json
+
 import tornado.ioloop
 import tornado.web
 
@@ -15,8 +17,35 @@ class TasksHandler(tornado.web.RequestHandler):
             tasks = self.db_client.get_tasks_by_user_id(user_id)
         except RuntimeError as ex:
             raise tornado.web.HTTPError(400, reason=str(ex))
+        except Exception as ex:
+            raise tornado.web.HTTPError(500, reason=str(ex))
 
         self.write({ "tasks": tasks })
+
+    def post(self, user_id):
+        if self.request.headers["Content-Type"] != "application/json":
+            raise tornado.web.HTTPError(400, reason="Content-Type must be application/json")
+
+        task_create = json.loads(self.request.body)
+
+        self.__validate_attribute("task", task_create)
+
+        task = task_create["task"]
+        self.__validate_attribute("description", task)
+        self.__validate_attribute("due_date", task)
+
+        try:
+            create_task = self.db_client.create_task(user_id, task)
+        except RuntimeError as ex:
+            raise tornado.web.HTTPError(400, reason=str(ex))
+        except Exception as ex:
+            raise tornado.web.HTTPError(500, reason=str(ex))
+
+    def __validate_attribute(self, check_attribute, attributes):
+        if check_attribute not in attributes:
+            raise tornado.web.HTTPError(400,
+                    reason="{0} not in attributes: {1}".format(check_attribute,
+                                                               attributes))
 
 if __name__ == "__main__":
     db_client = DBClient()
